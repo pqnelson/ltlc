@@ -1,11 +1,7 @@
-Require Import String.
-Require Export Coq.Lists.List.
-Require Export Coq.Arith.Compare_dec.
 Require Export Coq.Arith.EqNat.
 Require Export Util.
 
-(**
- Lambda-typed lambda calculus.
+(** * Lambda-typed lambda calculus.
 *)
 
 (**
@@ -31,6 +27,17 @@ Inductive exp : Type :=
 Hint Constructors exp.
 
 (**
+Equality between [exp] is decidable and may be used for conditional
+statements in Coq.
+*)
+Definition exp_eq_dec : forall (A B:exp), {A = B} + {A <> B}.
+Proof.
+  intros.
+  decide equality.
+  decide equality.
+Defined.
+
+(**
 Definition. A Context is inductively defined as
 
 - The empty context
@@ -44,11 +51,20 @@ since we're using de Bruijn indices.
 
 Definition context := list exp.
 
-(** Weak Normal Forms.
+(**
+We would like to check if a given context contains a variable.
+Since variables are represented using de Bruijn indices, this amounts
+to testing if the [nat] passed in is less than the length of the
+context.
+*)
+Module Context.
+Definition contains (c : context) (n : nat) : Prop := not (length c > n).
+End Context.
+
+(** ** Weak Normal Forms.
 
 Expressions in weak normal form cannot be reduced further
 from call-by-value evaluation.
-
 *)
 
 Inductive wnf : exp -> Prop :=
@@ -66,6 +82,12 @@ Fixpoint well_formed (Gamma:context) (x:exp) : Prop :=
   | EApp t1 t2 => (well_formed Gamma t1) /\ (well_formed Gamma t2)
   end.
 
+(** * De Bruijn Indices
+
+We use de Bruijn indices since, well, that appears to be convention.
+The following functions are designed towards that end.
+*)
+
 (** The [d]-place shift of a term [t] above the cutoff [c]. *)
 Fixpoint shift (d: nat) (* current binding depth *)
                (c: nat) (* cutoff *)
@@ -82,6 +104,7 @@ end.
 
 Definition lift (d: nat) (x:exp) : exp := shift d 0 x.
 
+(* Unit tests for [lift] *)
 Example lift_var_ex1:
   lift 1 (EVar 2) = EVar 3.
 Proof.
@@ -98,6 +121,7 @@ Example lift_lambda_ex1:
 Proof.
   intuition.
 Qed.
+
 
 Example lift_lambda_ex2:
   lift 2 (ELam tau (EApp (EVar 0)
@@ -168,5 +192,4 @@ Example subst_ex1 :
 Proof.
   intuition.
 Qed.
-
 
