@@ -1,3 +1,7 @@
 *.glob
 *.vo
 *~
+*.old
+src/html/
+src/.depend
+src/Makefile
