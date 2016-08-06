@@ -5,3 +5,4 @@
 src/html/
 src/.depend
 src/Makefile
+*.d
